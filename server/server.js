@@ -1,10 +1,12 @@
 require("dotenv").config();
 const express = require('express');
 const morgan = require('morgan');
-const db = require('./db')
+const cors = require('cors');
+const db = require('./db');
 const app = express();
 
 // takes JSON object in the body of client's request and attaches it the req object under 'body'
+app.use(cors()); 
 app.use(express.json())
 
 // Get all restaurants
