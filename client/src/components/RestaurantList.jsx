@@ -1,11 +1,57 @@
-import React from 'react';
+import React, {useEffect, useContext} from 'react';
+import RestaurantFinder from '../apis/RestaurantFinder';
+import { RestaurantsContext } from '../context/RestaurantsContext';
+import {useNavigate} from 'react-router-dom';
 
-export const RestaurantList = () => {
+const RestaurantList = (props) => {
+    const {restaurants, setRestaurants} = useContext(RestaurantsContext) 
+    let navigate = useNavigate();
+
+    const handleDelete = async (id) => {
+        try {
+            const response = await RestaurantFinder.delete(`/${id}`);
+            console.log(response);
+            setRestaurants(restaurants.filter(restaurant => {
+                return restaurant.id !== id;
+            }));
+        }
+        catch (err){
+            console.log(`error: ${err}`)
+        }
+    }
+
+    const handleUpdate = async (id) => {
+        navigate(`/restaurants/${id}/update`); 
+        // try {
+        //     const response = await RestaurantFinder.post(`/${id}`);
+        //     console.log(response);
+        // }
+        // catch (err) {
+        //     console.log(`error: ${err}`)
+        // }
+
+    }
+
+    useEffect(() => { 
+        // moved code into fetchData func to avoid error from await implicit return in useEffect()
+        const fetchData = async () =>{ 
+            try{
+                const response = await RestaurantFinder.get('/');
+                setRestaurants(response.data.data.restaurants);
+            }
+            catch (err){
+                console.log(`error ${err}`);
+            }
+        }
+
+        fetchData();
+    }, [])
+
   return (
     <div className='list-group'>
-        <table class="table table-dark table-hover">
+        <table className="table table-dark table-hover">
             <thead>
-                <tr class='table-primary'>
+                <tr className='table-primary'>
                     <th scope="col">Restaurant</th>
                     <th scope="col">Location</th>
                     <th scope="col">Price Range</th>
@@ -15,10 +61,23 @@ export const RestaurantList = () => {
                 </tr>
             </thead>
             <tbody>
-                <tr>
+                {restaurants && restaurants.map((restaurant) =>{
+                    return (
+                        <tr key = {restaurant.id}>
+                            <td>{restaurant.name.charAt(0).toUpperCase() + restaurant.name.substring(1)}</td>
+                            <td>{restaurant.location.charAt(0).toUpperCase() + restaurant.location.substring(1)}</td>
+                            <td>{"$".repeat(restaurant.price_range)}</td>
+                            <td>reviews</td>
+                            <td><button onClick={() => handleUpdate(restaurant.id)} className="btn btn-outline-warning">Update</button></td>
+                            <td><button onClick={() => handleDelete(restaurant.id)} className="btn btn-outline-danger">Delete</button></td>
+                        </tr>
+                    )
+                })}
+
+                {/* <tr>
                     <th scope="row">Velvet Taco</th>
                     <td>Dallas</td>
-                    <td>$$</td>
+                    <td>$</td>
                     <td>3</td>
                     <td><button className="btn btn-outline-warning">Update</button></td>
                     <td><button className="btn btn-outline-danger">Delete</button></td>
@@ -30,11 +89,11 @@ export const RestaurantList = () => {
                     <td>3</td>
                     <td><button className="btn btn-outline-warning">Update</button></td>
                     <td><button className="btn btn-outline-danger">Delete</button></td>
-                </tr>
+                </tr> */}
             </tbody>
         </table>
     </div>
   )
-};
+}
 
-export default RestaurantList;
+export default RestaurantList
